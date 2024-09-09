@@ -55,8 +55,6 @@ const Dashboard = () => {
   useEffect(() => {
     const updateFirestoreAndLocalStorage = async () => {
       try {
-        console.log('Updating Firestore and localStorage...');
-        console.log('Tasks:', tasks);
         tasks.forEach(async (task) => {
           await setDoc(doc(db, 'tasks', String(task.id)), task); // Update Firestore doc
         });
@@ -67,7 +65,6 @@ const Dashboard = () => {
     };
 
     updateFirestoreAndLocalStorage(); // Ensure async operation
-    console.log(process.env.REACT_APP_FIREBASE_API_KEY);
 
   }, [tasks]);
 
@@ -101,19 +98,35 @@ const Dashboard = () => {
     const { source, destination } = result;
     if (!destination) return;
   
-
+    console.log("Result", result);
     
     if (source.droppableId !== destination.droppableId) {
-      updateTaskStatus(parseInt(result.draggableId), destination.droppableId);
+      console.log('Different columns');
+      // updateTaskStatus(parseInt(result.draggableId), destination.droppableId);
+      const othertasks = tasks.filter((task) => task.id !== parseInt(result.draggableId));
+      const task = tasks.find((task) => task.id === parseInt(result.draggableId));
+      task.status = destination.droppableId;
+
+
+      // Const diff
+      const differentColumnsTasks = othertasks.filter((task) => task.status !== destination.droppableId);
+      const reorderedTasks = Array.from(othertasks.filter((task) => task.status === destination.droppableId));
+      reorderedTasks.splice(destination.index, 0, task);
+      setTasks([...differentColumnsTasks, ...reorderedTasks]);
       return;
     }
-
-    const reorderedTasks = Array.from(tasks);
+    // Dont change the order of tasks of different columns
+    // Make different columns for different status
+    const differentColumnsTasks = tasks.filter((task) => task.status !== destination.droppableId);
+    const reorderedTasks = Array.from(tasks.filter((task) => task.status === destination.droppableId));
+    console.log("reorderedTasks", reorderedTasks);
     const [removed] = reorderedTasks.splice(source.index, 1);
-    removed.status = destination.droppableId;
+    console.log("removed", removed);
+    // removed.status = destination.droppableId;
     reorderedTasks.splice(destination.index, 0, removed);
-
-    setTasks(reorderedTasks);
+    console.log("reorderedTasks", reorderedTasks);
+    setTasks([...differentColumnsTasks, ...reorderedTasks]);
+    // setTasks(reorderedTasks);
   };
 
   return (
