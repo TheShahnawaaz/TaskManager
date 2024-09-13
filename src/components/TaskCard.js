@@ -1,8 +1,17 @@
+// src/components/TaskCard.js
 import React, { useState } from 'react';
-import { Label, Card, Dropdown, Button, Grid, Header, Divider,Icon  } from 'semantic-ui-react';
+import { Label, Card, Dropdown, Button, Grid, Header, Divider, Icon, List, Checkbox, Input, Loader } from 'semantic-ui-react';
 
-const TaskCard = ({ task, provided, updateTaskStatus, handleDeleteTask }) => {
-  const [activeItem, setActiveItem] = useState(null); // For menu item state
+const TaskCard = ({ 
+  task, 
+  provided, 
+  updateTaskStatus, 
+  handleDeleteTask, 
+  handleAddSubtask, 
+  handleToggleSubtask 
+}) => {
+  const [subtaskInput, setSubtaskInput] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false); // Loader state for subtask actions
 
   // Dropdown options for task status
   const statusOptions = [
@@ -26,6 +35,20 @@ const TaskCard = ({ task, provided, updateTaskStatus, handleDeleteTask }) => {
   const formatDate = (dateString) => {
     const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
     return new Date(dateString).toLocaleDateString('en-GB', options);
+  };
+
+  const handleAddSubtaskClick = async () => {
+    if (!subtaskInput.trim()) return;
+    setIsUpdating(true);
+    await handleAddSubtask(task.id, subtaskInput);
+    setSubtaskInput('');
+    setIsUpdating(false);
+  };
+
+  const handleToggleSubtaskClick = async (subtaskId) => {
+    setIsUpdating(true);
+    await handleToggleSubtask(task.id, subtaskId);
+    setIsUpdating(false);
   };
 
   return (
@@ -74,23 +97,64 @@ const TaskCard = ({ task, provided, updateTaskStatus, handleDeleteTask }) => {
           <Card.Meta>
             <span style={{ color: 'gray', fontSize: '13px' }}>
               <Icon name='calendar alternate outline' /> {/* Calendar Icon */}
-              &nbsp;
-              &nbsp;
+              &nbsp;&nbsp;
               {formatDate(task.dueDate)} {/* Formatted Due Date */}
             </span>
-
           </Card.Meta>
+
+          {/* Subtasks Section */}
+          <div style={{ marginTop: '10px' }}>
+            <Header as='h4'>Subtasks</Header>
+            <List divided relaxed>
+              {task.subtasks && task.subtasks.map(subtask => (
+                <List.Item key={subtask.id} onClick={() => handleToggleSubtaskClick(subtask.id)}>
+                  <Card.Description style={{ marginBottom: '10px', fontSize: '14px' }}>
+                  {subtask.completed && <Icon name='check circle' color='green' />}
+                  {!subtask.completed && <Icon name='circle outline' color='grey' />}
+                  <Header as='h5' style={{ display: 'inline' }}> 
+                    {subtask.title}
+                  </Header>
+                  </Card.Description>
+                  <Card.Meta>
+    
+                  <span style={{ color: 'grey', fontSize: '12px' }}>
+                    <Icon name='clock outline' /> 
+                    &nbsp;
+                    {subtask.createdAt ? 
+                      (() => {
+                        const date = new Date(subtask.createdAt.seconds * 1000);
+                        return isNaN(date.getTime()) ? subtask.createdAt.toLocaleString() : date.toLocaleString();
+                      })() 
+                      : 'N/A'}
+                  </span>
+                  </Card.Meta>
+
+                </List.Item>
+              ))}
+            </List>
+            <Input
+              placeholder='Add subtask...'
+              value={subtaskInput}
+              onChange={(e) => setSubtaskInput(e.target.value)}
+              action={{
+                color: 'green',
+                icon: 'add',
+                onClick: handleAddSubtaskClick
+              }}
+              disabled={isUpdating}
+            />
+            
+          </div>
         </Card.Content>
 
         <Card.Content extra>
+          {isUpdating && <Loader active inline size='small' />}
           {/* Delete button */}
-          {/* <Button  icon='settings' /> */}
           <Button
-          circular
+            circular
             color='red'
             floated='right'
             icon='trash'
-    
             onClick={() => handleDeleteTask(task.id)}
           />
         </Card.Content>

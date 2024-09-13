@@ -1,7 +1,8 @@
+// src/components/CreateTaskModal.js
 import React from 'react';
-import { Modal, Button, Form } from 'semantic-ui-react';
+import { Modal, Button, Form, Loader } from 'semantic-ui-react';
 
-const CreateTaskModal = ({ newTask, setNewTask, handleCreateTask, setIsModalOpen }) => {
+const CreateTaskModal = ({ newTask, setNewTask, handleCreateTask, setIsModalOpen, isCreating }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewTask(prevTask => ({
@@ -61,8 +62,8 @@ const CreateTaskModal = ({ newTask, setNewTask, handleCreateTask, setIsModalOpen
         </Form>
       </Modal.Content>
       <Modal.Actions>
-        <Button onClick={handleCreateTask} color="green">
-          Create Task
+        <Button onClick={handleCreateTask} color="green" disabled={isCreating}>
+          {isCreating ? <Loader active inline size='small' /> : 'Create Task'}
         </Button>
         <Button onClick={() => setIsModalOpen(false)} color="red">
           Cancel

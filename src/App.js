@@ -1,188 +1,68 @@
+// src/App.js
 import React, { useState, useEffect } from 'react';
-import { DragDropContext } from 'react-beautiful-dnd';
-import { Button, Grid, Container } from 'semantic-ui-react';
-import TaskColumn from './components/TaskColumn';
-import CreateTaskModal from './components/CreateTaskModal';
-import { db } from './firebaseConfig'; // Import Firestore db
-import { collection, getDocs, setDoc, doc, deleteDoc } from 'firebase/firestore'; // Firestore methods
-import './index.css'; // Import your custom CSS here
+import { auth } from './firebaseConfig';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { BrowserRouter as Router, Route, Routes, Navigate, Link } from 'react-router-dom';
+import Dashboard from './Dashboard';
+import Login from './components/Login';
+import Signup from './components/Signup';
+import { Button, Container, Menu, Loader, Dimmer } from 'semantic-ui-react';
 
-const Dashboard = () => {
-  const [tasks, setTasks] = useState(() => {
-    const savedTasks = localStorage.getItem('tasks');
-    return savedTasks ? JSON.parse(savedTasks) : []; // Parse JSON or return empty array
-  });
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newTask, setNewTask] = useState({
-    title: '',
-    description: '',
-    dueDate: '',
-    status: 'todo',
-    priority: 'medium',
-  });
+const App = () => {
+  const [user, setUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false); // Loader state
 
-  // Sync Firestore with localStorage on mount
   useEffect(() => {
-    const fetchTasksFromFirestore = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'tasks'));
-        const firestoreTasks = [];
-        querySnapshot.forEach((doc) => {
-          firestoreTasks.push({ id: doc.id, ...doc.data() });
-        });
-        setTasks(firestoreTasks);
-        localStorage.setItem('tasks', JSON.stringify(firestoreTasks));
-      } catch (error) {
-        console.error('Error fetching tasks from Firestore:', error);
-      }
-    };
-    fetchTasksFromFirestore();
-  }, []);
-  const updateFirestoreAndLocalStorage = async () => {
-  try {
-    console.log('Updating Firestore and localStorage...');
-    console.log('Tasks:', tasks);
-    tasks.forEach(async (task) => {
-      await setDoc(doc(db, 'tasks', String(task.id)), task); // Update Firestore doc
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setAuthChecked(true);
     });
-    localStorage.setItem('tasks', JSON.stringify(tasks)); // Update localStorage
-  } catch (error) {
-    console.error('Error updating Firestore:', error);
-  }
-};
+    return () => unsubscribe();
+  }, []);
 
-  // Update Firestore and localStorage when tasks change
-  useEffect(() => {
-    const updateFirestoreAndLocalStorage = async () => {
-      try {
-        tasks.forEach(async (task) => {
-          await setDoc(doc(db, 'tasks', String(task.id)), task); // Update Firestore doc
-        });
-        localStorage.setItem('tasks', JSON.stringify(tasks)); // Update localStorage
-      } catch (error) {
-        console.error('Error updating Firestore:', error);
-      }
-    };
-
-    updateFirestoreAndLocalStorage(); // Ensure async operation
-
-  }, [tasks]);
-
-  const handleCreateTask = () => {
-    const taskId = tasks.length + 1;
-    const newTaskData = { id: taskId, ...newTask };
-    setTasks((prevTasks) => [...prevTasks, newTaskData]);
-    setNewTask({ title: '', description: '', dueDate: '', status: 'todo', priority: '' });
-    setIsModalOpen(false);
+  const handleLogout = () => {
+    signOut(auth);
   };
 
-  const updateTaskStatus = (id, newStatus) => {
-    setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === id ? { ...task, status: newStatus } : task
-      )
+  if (!authChecked) {
+    // Show loader while checking auth status
+    return (
+      <Dimmer active inverted>
+        <Loader size='large'>Loading</Loader>
+      </Dimmer>
     );
-  };
-
-  const handleDeleteTask = async (id) => {
-    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
-    try {
-      await deleteDoc(doc(db, 'tasks', String(id))); // Delete Firestore doc
-      console.log('Task deleted:', id);
-    } catch (error) {
-      console.error('Error deleting task from Firestore:', error);
-    }
-  };
-
-  const onDragEnd = (result) => {
-    const { source, destination } = result;
-    if (!destination) return;
-  
-    console.log("Result", result);
-    
-    if (source.droppableId !== destination.droppableId) {
-      console.log('Different columns');
-      // updateTaskStatus(parseInt(result.draggableId), destination.droppableId);
-      const othertasks = tasks.filter((task) => task.id !== parseInt(result.draggableId));
-      const task = tasks.find((task) => task.id === parseInt(result.draggableId));
-      task.status = destination.droppableId;
-
-
-      // Const diff
-      const differentColumnsTasks = othertasks.filter((task) => task.status !== destination.droppableId);
-      const reorderedTasks = Array.from(othertasks.filter((task) => task.status === destination.droppableId));
-      reorderedTasks.splice(destination.index, 0, task);
-      setTasks([...differentColumnsTasks, ...reorderedTasks]);
-      return;
-    }
-    // Dont change the order of tasks of different columns
-    // Make different columns for different status
-    const differentColumnsTasks = tasks.filter((task) => task.status !== destination.droppableId);
-    const reorderedTasks = Array.from(tasks.filter((task) => task.status === destination.droppableId));
-    console.log("reorderedTasks", reorderedTasks);
-    const [removed] = reorderedTasks.splice(source.index, 1);
-    console.log("removed", removed);
-    // removed.status = destination.droppableId;
-    reorderedTasks.splice(destination.index, 0, removed);
-    console.log("reorderedTasks", reorderedTasks);
-    setTasks([...differentColumnsTasks, ...reorderedTasks]);
-    // setTasks(reorderedTasks);
-  };
+  }
 
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
-      <Container className="dashboard" style={{ marginTop: '0' }}>
-        <Grid>
-          <Grid.Row columns={2} verticalAlign="middle">
-            <Grid.Column>
-              <h1>Task Manager </h1>
-            </Grid.Column>
-            <Grid.Column textAlign="right">
-              <Button color="blue" onClick={() => setIsModalOpen(true)}>
-                Create Task
-              </Button>
-            </Grid.Column>
-          </Grid.Row>
-        </Grid>
-
-        <Grid columns={3} divided stackable style={{ gap: '10px' }}>
-          <TaskColumn
-            droppableId="todo"
-            tasks={tasks.filter((task) => task.status === 'todo')}
-            title="TODO"
-            columnColor="#8A30E5"
-            updateTaskStatus={updateTaskStatus}
-            handleDeleteTask={handleDeleteTask}
-          />
-          <TaskColumn
-            droppableId="in-progress"
-            tasks={tasks.filter((task) => task.status === 'in-progress')}
-            title="IN PROGRESS"
-            columnColor="#FFC14E"
-            updateTaskStatus={updateTaskStatus}
-            handleDeleteTask={handleDeleteTask}
-          />
-          <TaskColumn
-            droppableId="completed"
-            tasks={tasks.filter((task) => task.status === 'completed')}
-            title="COMPLETED"
-            columnColor="#06C270"
-            updateTaskStatus={updateTaskStatus}
-            handleDeleteTask={handleDeleteTask}
-          />
-        </Grid>
-
-        {isModalOpen && (
-          <CreateTaskModal
-            newTask={newTask}
-            setNewTask={setNewTask}
-            handleCreateTask={handleCreateTask}
-            setIsModalOpen={setIsModalOpen}
-          />
-        )}
+    <Router>
+      <Container style={{ marginTop: '20px' }}>
+        <Menu>
+          <Menu.Item as={Link} to="/" header>
+            Task Manager
+          </Menu.Item>
+          {!user && (
+            <Menu.Menu position='right'>
+              <Menu.Item as={Link} to="/login">Login</Menu.Item>
+              <Menu.Item as={Link} to="/signup">Signup</Menu.Item>
+            </Menu.Menu>
+          )}
+          {user && (
+            <Menu.Menu position='right'>
+              <Menu.Item>
+                <Button color="red" onClick={handleLogout}>Logout</Button>
+              </Menu.Item>
+            </Menu.Menu>
+          )}
+        </Menu>
+        <Routes>
+          <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
+          <Route path="/signup" element={!user ? <Signup /> : <Navigate to="/" />} />
+          <Route path="/" element={user ? <Dashboard /> : <Navigate to="/login" />} />
+        </Routes>
       </Container>
-    </DragDropContext>
+    </Router>
   );
 };
 
-export default Dashboard;
+export default App;
+

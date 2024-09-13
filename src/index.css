@@ -47,7 +47,7 @@
   justify-content: center;
   /* padding: 30px !important; */
   /* background-color: #f9f9f9; */
-  border-radius: 14px;
+  /* border-radius: 14px; */
   /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */
   /* min-width: 300px; */
 }
@@ -82,4 +82,99 @@
 
 .delete-button:hover {
   background-color: #d50000;
+}
+
+
+/* src/index.css */
+
+/* Dark Mode Styles */
+.dashboard.dark-mode {
+  background-color: #1e1e1e;
+  color: #ffffff;
+}
+
+.dashboard.dark-mode .task-column {
+  background-color: #2e2e2e;
+}
+
+.dashboard.dark-mode .ui.card {
+  background-color: #3e3e3e !important;
+  color: #ffffff !important;
+}
+
+.dashboard.dark-mode .ui.header {
+  color: #ffffff !important;
+}
+
+.dashboard.dark-mode .ui.input input {
+  background-color: #555555 !important;
+  color: #ffffff !important;
+}
+
+.dashboard.dark-mode .ui.dropdown .menu {
+  background-color: #3e3e3e !important;
+  color: #ffffff !important;
+}
+
+.dashboard.dark-mode .ui.modal {
+  background-color: #2e2e2e !important;
+  color: #ffffff !important;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .task-card {
+    padding: 5px !important;
+  }
+
+  .task-column-content {
+    min-height: auto !important;
+  }
+
+  .ui.header {
+    font-size: 1.2em !important;
+  }
+}
+
+
+/* src/index.css */
+
+/* Dashboard Header */
+.dashboard > .ui.container > .ui.grid > .row:first-child {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Search and Filter Buttons */
+.search-filter-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+/* Adjust Modal Content */
+.ui.modal .content {
+  padding: 20px;
+}
+
+/* Dark Mode Styles (if implemented) */
+.dark-mode {
+  background-color: #1b1c1d !important;
+  color: #ffffff !important;
+}
+
+.dark-mode .ui.button {
+  background-color: #333 !important;
+  color: #fff !important;
+}
+
+.dark-mode .ui.input > input {
+  background-color: #333 !important;
+  color: #fff !important;
+}
+
+.dark-mode .ui.dropdown .menu {
+  background-color: #333 !important;
+  color: #fff !important;
 }

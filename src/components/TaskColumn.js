@@ -1,19 +1,27 @@
+// src/components/TaskColumn.js
 import React from 'react';
 import { Droppable, Draggable } from 'react-beautiful-dnd';
 import TaskCard from './TaskCard';
 import { Header } from 'semantic-ui-react';
 
-const TaskColumn = ({ droppableId, tasks, title, columnColor, updateTaskStatus, handleDeleteTask }) => {
+const TaskColumn = ({ 
+  droppableId, 
+  tasks, 
+  title, 
+  columnColor, 
+  updateTaskStatus, 
+  handleDeleteTask, 
+  handleAddSubtask, 
+  handleToggleSubtask 
+}) => {
   return (
     <Droppable droppableId={droppableId}>
       {(provided) => (
         <div
           className="task-column"
-          style={{ padding: '0', backgroundColor: columnColor }}
-          
+          style={{ padding: '0px', backgroundColor: columnColor, borderRadius: '15px' }}
         >
-
-          <Header as='h2' style={{ margin: '10px auto' , selfAlign: 'center', color: 'white' , padding: '10px'}}>
+          <Header as='h2' style={{ margin: '10px auto', textAlign: 'center', color: 'white', padding: '10px' }}>
             {title}
           </Header>
           <div
@@ -22,13 +30,15 @@ const TaskColumn = ({ droppableId, tasks, title, columnColor, updateTaskStatus, 
             ref={provided.innerRef}
           >
             {tasks.map((task, index) => (
-              <Draggable key={task.id} draggableId={String(task.id)} index={index}>
+              <Draggable key={task.id} draggableId={task.id} index={index}>
                 {(provided) => (
                   <TaskCard
                     task={task}
                     provided={provided}
                     updateTaskStatus={updateTaskStatus}
                     handleDeleteTask={handleDeleteTask}
+                    handleAddSubtask={handleAddSubtask}
+                    handleToggleSubtask={handleToggleSubtask}
                   />
                 )}
               </Draggable>

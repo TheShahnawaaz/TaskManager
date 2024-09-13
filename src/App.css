@@ -37,3 +37,55 @@
     transform: rotate(360deg);
   }
 }
+
+
+/* src/index.css */
+
+/* Dark Mode Styles */
+.dashboard.dark-mode {
+  background-color: #1e1e1e;
+  color: #ffffff;
+}
+
+.dashboard.dark-mode .task-column {
+  background-color: #2e2e2e;
+}
+
+.dashboard.dark-mode .ui.card {
+  background-color: #3e3e3e !important;
+  color: #ffffff !important;
+}
+
+.dashboard.dark-mode .ui.header {
+  color: #ffffff !important;
+}
+
+.dashboard.dark-mode .ui.input input {
+  background-color: #555555 !important;
+  color: #ffffff !important;
+}
+
+.dashboard.dark-mode .ui.dropdown .menu {
+  background-color: #3e3e3e !important;
+  color: #ffffff !important;
+}
+
+.dashboard.dark-mode .ui.modal {
+  background-color: #2e2e2e !important;
+  color: #ffffff !important;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .task-card {
+    padding: 5px !important;
+  }
+
+  .task-column-content {
+    min-height: auto !important;
+  }
+
+  .ui.header {
+    font-size: 1.2em !important;
+  }
+}
